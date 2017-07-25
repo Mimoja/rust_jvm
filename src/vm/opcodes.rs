@@ -2,7 +2,7 @@ use vm::local_variables::LocalVariables;
 use vm::stack::Stack;
 use vm::stack::StackEntry;
 
-
+#[repr(u8)]
 enum ByteCode {
     aload_0 = 0x2A,
     bipush = 0x10,
@@ -31,8 +31,9 @@ enum ByteCode {
     ldc = 0x12,
     op_new = 0xBB,
     return_op = 0xB1,
-
 }
+
+
 
 fn iload(stack: &mut Stack, local_variables: &mut LocalVariables, next_byte: u8) -> u16 {
     let index = next_byte;

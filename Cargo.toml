@@ -7,3 +7,4 @@ authors = ["Mimoja <max-schander@freenet.de>"]
 classfile-parser = "0.2.1"
 log = "0.3.8"
 env_logger = "0.4.3"
+nom = "*"
