@@ -19,7 +19,7 @@ impl Vm {
 
     }
 
-    pub fn addClass(&self, input_stream: &[u8]){
+    pub fn addClass(&mut self, input_stream: &[u8]){
         self.class_manager.loadClass(input_stream);
     }
 

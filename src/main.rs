@@ -11,5 +11,6 @@ fn main() {
 
     let classStream = include_bytes!("../test.class");
     let mut vm = Vm::new();
+    vm.addClass(classStream);
     vm.run();
 }

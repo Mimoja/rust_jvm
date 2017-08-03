@@ -18,15 +18,36 @@ impl ClassManager{
         }
     }
 
-    pub fn addClass(&self, class: ClassFile){
-        //knownClasses.insert(class);
+    pub fn getName(&self, class: &ClassFile, index:usize) -> String{
+        let mut utf8_index: usize = 0;
+        let t = class.const_pool.get(index).unwrap();
+        match t {
+            &ConstantInfo::Class(ref name_index) => {
+                utf8_index = name_index.name_index as usize;
+            },
+            &ConstantInfo::Utf8(ref name) => return name.utf8_string.clone(),
+            _=> panic!("Not implemented for {:?}", t),
+        }
+
+        if let &ConstantInfo::Utf8(ref name) = class.const_pool.get(utf8_index).unwrap() {
+            return name.utf8_string.clone();
+        } else {
+            panic!("Not UTF8");
+        }
+    }
+
+
+    pub fn addClass(&mut self, class: ClassFile){
+        let name = self.getName(&class, class.this_class as usize);
+        println!("Adding {} to known classes", name);
+        self.knownClasses.insert(name, class);
     }
 
     pub fn getClass(&self, name : &String) -> Option<&ClassFile>{
         return self.knownClasses.get(name);
     }
 
-    pub fn loadClass(&self, input_stream: &[u8]){
+    pub fn loadClass(&mut self, input_stream: &[u8]){
         let res = parser::class_parser(input_stream);
         match res {
             IResult::Done(_, c) => {
