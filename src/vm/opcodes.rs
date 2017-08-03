@@ -1,4 +1,4 @@
-use vm::local_variables::LocalVariables;
+use vm::variables::*;
 use vm::stack::Stack;
 use vm::stack::StackEntry;
 
@@ -35,136 +35,169 @@ enum ByteCode {
 
 
 
-fn iload(stack: &mut Stack, local_variables: &mut LocalVariables, next_byte: u8) -> u16 {
+fn iload(stack: &mut Stack, local_variables: &mut Heap, next_byte: u8) -> u16 {
     let index = next_byte;
     let value = local_variables.get(index);
+    let new = value.clone();
+    debug!("iload: load value from local variable {}({:?})", index, value);
 
-    debug!("iload: load value from local variable {}({})", index, value);
-
-    stack.push_imm(*value);
+    stack.push_imm(new);
 
     return 2;
 }
 
-fn iload_1(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
+fn iload_1(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
     let value = local_variables.get(1);
+    let new = value.clone();
+    debug!("iload_1: load value from local variable 1({:?})", value);
 
-    debug!("iload_1: load value from local variable 1({})", value);
-
-    stack.push_imm(*value);
+    stack.push_imm(new);
     return 1;
 }
 
-fn iload_2(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
+fn iload_2(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
     let value = local_variables.get(2);
+    let new = value.clone();
+    debug!("iload_2: load value from local variable 2({:?})", value);
 
-    debug!("iload_2: load value from local variable 2({})", value);
-
-    stack.push_imm(*value);
+    stack.push_imm(new);
     return 1;
 }
 
-fn iload_3(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
+fn iload_3(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
     let value = local_variables.get(3);
+    let new = value.clone();
+    debug!("iload_3: load value from local variable 3({:?})", value);
 
-    debug!("iload_3: load value from local variable 3({})", value);
-
-    stack.push_imm(*value);
+    stack.push_imm(new);
     return 1;
 }
 
-fn istore(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
+fn istore(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
     let value = stack.pop_imm();
     let index = nextByte;
 
-    debug!("istore: store value into local variable {}({})", index, value);
+    debug!("istore: store value into local variable {}({:?})", index, value);
 
     *local_variables.get(index) = value;
     return 2;
 }
 
-fn istore_1(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
+fn istore_1(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
     let value = stack.pop_imm();
 
-    debug!("istore_1: store value into local variable 1({})", value);
+    debug!("istore_1: store value into local variable 1({:?})", value);
 
     *local_variables.get(1) = value;
     return 1;
 }
 
-fn istore_2(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
+fn istore_2(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
     let value = stack.pop_imm();
 
-    debug!("istore_2: store value into local variable 2({})", value);
+    debug!("istore_2: store value into local variable 2({:?})", value);
 
     *local_variables.get(2) = value;
     return 1;
 }
 
-fn istore_3(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
+fn istore_3(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
     let value = stack.pop_imm();
 
-    debug!("istore_3: store value into local variable 3({})", value);
+    debug!("istore_3: store value into local variable 3({:?})", value);
 
     *local_variables.get(3) = value;
     return 1;
 }
 
-fn isub(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
-    let value2 = stack.pop_imm();
-    let value1 = stack.pop_imm();
-    let result = value1 - value2;
+fn isub(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
+    let mut result;
+    if let Variable::int(value1) = stack.pop_imm(){
+        if let Variable::int(value2) = stack.pop_imm(){
+            result = value1 - value2;
+            debug!("isub : {} - {} = {}", value1, value2, result);
+        }
+            else {
+                panic!("Not an integer");
+            }
+    }
+        else {
+            panic!("Not an integer");
+        }
 
-    debug!("isub : {} - {} = {}", value1, value2, result);
-
-    stack.push_imm(result);
+    stack.push_imm(Variable::int(result));
     return 1;
 }
 
-fn idiv(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
-    let value2 = stack.pop_imm();
-    let value1 = stack.pop_imm();
-    let result = value1 / value2;
-    stack.push_imm(result);
+fn idiv(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
+    let mut result;
+    if let Variable::int(value1) = stack.pop_imm(){
+        if let Variable::int(value2) = stack.pop_imm(){
+            result = value1 / value2;
+            debug!("idiv: {} / {} = {}\n", value1, value2, result);
+        }
+            else {
+                panic!("Not an integer");
+            }
+    }
+        else {
+            panic!("Not an integer");
+        }
 
-    debug!("idiv: {} / {} = {}", value1, value2, result);
-
+    stack.push_imm(Variable::int(result));
+    return 1;
     return 1;
 }
 
-fn imul(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
-    let value1 = stack.pop_imm();
-    let value2 = stack.pop_imm();
-    let result = value1 * value2;
-    stack.push_imm(result);
+fn imul(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
+    let mut result;
+    if let Variable::int(value1) = stack.pop_imm(){
+        if let Variable::int(value2) = stack.pop_imm(){
+            result = value1 * value2;
+            debug!("imul: {} * {} = {}\n", value1, value2, result);
+        }
+            else {
+                panic!("Not an integer");
+            }
+    }
+        else {
+            panic!("Not an integer");
+        }
 
-    debug!("imul : {} * {} = {}", value1, value2, result);
-
+    stack.push_imm(Variable::int(result));
     return 1;
 }
 
-fn iadd(stack: &mut Stack, local_variables: &mut LocalVariables) -> u16 {
-    let value1 = stack.pop_imm();
-    let value2 = stack.pop_imm();
-    let result = value1 + value2;
+fn iadd(stack: &mut Stack, local_variables: &mut Heap) -> u16 {
+    let mut result;
+    if let Variable::int(value1) = stack.pop_imm(){
+        if let Variable::int(value2) = stack.pop_imm(){
+            result = value1 + value2;
+            debug!("iadd: {} + {} = {}\n", value1, value2, result);
+        }
+        else {
+            panic!("Not an integer");
+        }
+    }
+    else {
+        panic!("Not an integer");
+    }
 
-    debug!("iadd: {} + {} = {}\n", value1, value2, result);
-
-    stack.push_imm(result);
+    stack.push_imm(Variable::int(result));
     return 1;
 }
 
 
-fn bipush(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
+fn bipush(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
     let value = nextByte;
-    stack.push_imm(value as u32);
+    stack.push_imm(Variable::int(value as u32));
 
     debug!("push a byte {} onto the stack \n", value);
 
     return 2;
 }
 
-fn dup(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
+fn dup(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
     if let Some(entry) = stack.0.pop() {
         stack.0.push(entry.clone());
         stack.0.push(entry.clone());
@@ -179,7 +212,7 @@ fn dup(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) ->
     return 1;
 }
 
-fn ldc(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
+fn ldc(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
     let value = nextByte;
     stack.push_ref(value as u32);
 
@@ -188,63 +221,62 @@ fn ldc(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) ->
     return 2;
 }
 
-fn op_return(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
+fn op_return(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
     debug!("return ");
 
     return -1;
 }
 
-fn aload_0(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
-    stack.push_imm(0);
-
-
+fn aload_0(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
+    //stack.push_imm(0);
+    //TODO fix!
     debug!("aload_0: push 0 to stack\n");
 
     return 1;
 }
 
-fn iconst_0(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
-    stack.push_imm(0);
+fn iconst_0(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
+    stack.push_imm(Variable::int(0));
 
     debug!("iconst_0: push 0 to stack\n");
 
     return 1;
 }
 
-fn iconst_1(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
-    stack.push_imm(1);
+fn iconst_1(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
+    stack.push_imm(Variable::int(1));
 
     debug!("iconst_1: push 1 to stack\n");
 
     return 1;
 }
 
-fn iconst_2(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
-    stack.push_imm(2);
+fn iconst_2(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
+    stack.push_imm(Variable::int(2));
 
     debug!("iconst_2: push 2 to stack\n");
 
     return 1;
 }
 
-fn iconst_3(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
-    stack.push_imm(3);
+fn iconst_3(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
+    stack.push_imm(Variable::int(3));
 
     debug!("iconst_3: push 3 to stack\n");
 
     return 1;
 }
 
-fn iconst_4(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
-    stack.push_imm(4);
+fn iconst_4(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
+    stack.push_imm(Variable::int(4));
 
     debug!("iconst_4: push 4 to stack\n");
 
     return 1;
 }
 
-fn iconst_5(stack: &mut Stack, local_variables: &mut LocalVariables, nextByte: u8) -> i16 {
-    stack.push_imm(5);
+fn iconst_5(stack: &mut Stack, local_variables: &mut Heap, nextByte: u8) -> i16 {
+    stack.push_imm(Variable::int(5));
 
     debug!("iconst_5: push 5 to stack\n");
 

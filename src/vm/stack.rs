@@ -1,7 +1,9 @@
+use vm::variables::Variable;
+
 #[derive(Clone)]
 pub enum StackEntry {
     Reference(u32),
-    Immediate(u32),
+    Immediate(Variable),
 }
 
 #[derive(Clone)]
@@ -12,7 +14,7 @@ impl Stack {
         self.0.push(StackEntry::Reference(r));
     }
 
-    pub fn push_imm(&mut self, i: u32) {
+    pub fn push_imm(&mut self, i: Variable) {
         self.0.push(StackEntry::Immediate(i));
     }
 
@@ -27,7 +29,7 @@ impl Stack {
         }
     }
 
-    pub fn pop_imm(&mut self) -> u32 {
+    pub fn pop_imm(&mut self) -> Variable {
         if let Some(entry) = self.0.pop() {
             match entry {
                 StackEntry::Reference(_) => panic!("Poping an reference as immediate"),
